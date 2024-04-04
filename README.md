@@ -1,8 +1,22 @@
 ```puml
-class TransactionData {
-    long id
-    BigDecimal originalCurrencyValue
-}
+title Transaction Data Enrichment 
+
+Orchestrator<->ZTPDecisionService: Schedule transactionX check
+ZTPDecisionService->ZTPDataService: Get TransactionX
+note right of ZTPDataService: F1 Data is in DB
+ZTPDataService<->DB: Get Sync F1 Data
+ZTPDataService->ZTPDataService: Enrich transactionX with F1 data
+note right of ZTPDataService: F2 Data needs to be fetched
+ZTPDataService<->Vendor2: Get Sync F2 Data
+ZTPDataService->ZTPDataService: Enrich transactionX with F2 data
+ZTPDataService->DB: Save enriched transactionX
+alt Enrichment successful
+ZTPDataService->ZTPDecisionService: Return transactionX
+ZTPDecisionService->ZTPDecisionService: Do the check for transactionX
+ZTPDecisionService-->Orchestrator: Return transactionX check result
+else Enrichment failed
+ZTPDataService->ZTPDecisionService: Reschedule transactionX check
+end
 ```
 
 # flux-get-started
